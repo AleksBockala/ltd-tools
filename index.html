@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI LTD ROI Calculator by Gemini Pro 3</title>
+    <title>AI LTD ROI Master - Gemini Pro 3.1 Edition</title>
     <style>
         :root {
             --bg: #0a0b10;
@@ -13,156 +13,215 @@
             --danger: #ff4455;
             --success: #00ff88;
             --text: #e0e0e0;
+            --gold: #ffd700;
+        }
+
+        /* Gold Mode (Adaptive Colors) */
+        .gold-mode {
+            --primary: var(--gold);
+            --success: var(--gold);
+            --accent: #ffa500;
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
             justify-content: center;
             padding: 20px;
             margin: 0;
+            transition: all 0.5s ease;
         }
 
         .calculator-card {
             background: var(--card);
             padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            border-radius: 24px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.7);
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             border: 1px solid #2a2c3a;
+            position: relative;
+            overflow: hidden;
         }
 
-        h2 { text-align: center; margin-top: 0; color: var(--primary); letter-spacing: 1px; }
+        .gold-mode .calculator-card {
+            border: 1px solid var(--gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        h2 { text-align: center; margin-top: 0; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1.5rem; }
-        
-        label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        label { display: block; margin-bottom: 8px; font-size: 0.75rem; color: #888; font-weight: bold; }
         
         input {
             width: 100%;
             background: #0d0e14;
             border: 1px solid #333;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             color: white;
             font-size: 1.1rem;
             box-sizing: border-box;
             transition: border-color 0.3s;
         }
-
         input:focus { border-color: var(--primary); outline: none; }
 
         .result-panel {
-            background: linear-gradient(135deg, #1a1c29 0%, #0d0e14 100%);
+            background: rgba(0,0,0,0.3);
             padding: 1.5rem;
-            border-radius: 15px;
-            border: 1px solid #2a2c3a;
+            border-radius: 18px;
+            border: 1px dashed #333;
             text-align: center;
+            margin-bottom: 20px;
         }
+        .roi-value { font-size: 2.5rem; font-weight: 900; color: var(--success); }
 
-        .roi-label { font-size: 0.9rem; color: #888; margin-bottom: 5px; }
-        .roi-value { font-size: 2rem; font-weight: 800; color: var(--success); text-shadow: 0 0 15px rgba(0,255,136,0.3); }
-
-        #graph-container {
-            margin-top: 2rem;
-            height: 180px;
+        /* Savings Table */
+        .savings-table {
             width: 100%;
-            position: relative;
+            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0 8px;
         }
+        .savings-row {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+        .savings-row:hover { transform: scale(1.02); background: rgba(255,255,255,0.05); }
+        .savings-row td { padding: 12px; font-size: 0.9rem; }
+        .savings-row td:last-child { text-align: right; font-weight: bold; color: var(--success); }
 
-        .axis { stroke: #333; stroke-width: 1; }
-        .chart-line-saas { stroke: var(--danger); stroke-width: 4; fill: none; stroke-linecap: round; }
-        .chart-line-ltd { stroke: var(--success); stroke-width: 4; fill: none; stroke-linecap: round; }
-        
-        .legend { display: flex; justify-content: space-around; margin-top: 15px; font-size: 0.8rem; }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        /* Telegram Button */
+        .share-btn {
+            width: 100%;
+            background: #24A1DE;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: filter 0.3s;
+        }
+        .share-btn:hover { filter: brightness(1.1); }
+
+        #graph-container { height: 150px; width: 100%; margin: 20px 0; }
+        .chart-line-saas { stroke: var(--danger); stroke-width: 4; fill: none; }
+        .chart-line-ltd { stroke: var(--success); stroke-width: 4; fill: none; }
     </style>
 </head>
-<body>
+<body id="bodyTag">
 
 <div class="calculator-card">
-    <h2>ROI Анализ LTD</h2>
+    <h2 id="title">ROI Анализ LTD</h2>
     
     <div class="input-row">
         <div class="input-group">
             <label>SaaS ($/мес)</label>
-            <input type="number" id="monthly" value="29" oninput="updateChart()">
+            <input type="number" id="monthly" value="29" oninput="updateAll()">
         </div>
         <div class="input-group">
             <label>LTD Цена ($)</label>
-            <input type="number" id="ltd" value="149" oninput="updateChart()">
+            <input type="number" id="ltd" value="149" oninput="updateAll()">
         </div>
     </div>
 
     <div class="result-panel">
-        <div class="roi-label">Точка окупаемости:</div>
+        <div style="font-size: 0.8rem; color: #888;">ОКУПАЕМОСТЬ:</div>
         <div class="roi-value" id="roi-text">5.1 мес.</div>
     </div>
 
     <div id="graph-container">
-        <svg id="chart" width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
-            <line x1="20" y1="20" x2="20" y2="180" class="axis" />
-            <line x1="20" y1="180" x2="380" y2="180" class="axis" />
-            
+        <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
             <path id="saas-path" class="chart-line-saas" d="" />
             <path id="ltd-path" class="chart-line-ltd" d="" />
-            
-            <circle id="point" cx="0" cy="0" r="6" fill="#fff" filter="drop-shadow(0 0 5px rgba(255,255,255,0.8))" style="display:none" />
+            <circle id="point" cx="0" cy="0" r="6" fill="#fff" style="display:none" />
         </svg>
     </div>
 
-    <div class="legend">
-        <div class="legend-item"><div class="dot" style="background:var(--danger)"></div> SaaS Траты</div>
-        <div class="legend-item"><div class="dot" style="background:var(--success)"></div> LTD Инвестиция</div>
-    </div>
+    <table class="savings-table">
+        <tr class="savings-row"><td>Через 1 год:</td><td id="save-1y">+$0</td></tr>
+        <tr class="savings-row"><td>Через 3 года:</td><td id="save-3y">+$0</td></tr>
+        <tr class="savings-row"><td>Через 5 лет:</td><td id="save-5y">+$0</td></tr>
+    </table>
+
+    <button class="share-btn" onclick="copyForTelegram()">
+        <span>✈️</span> Скопировать для Telegram
+    </button>
 </div>
 
 <script>
-    function updateChart() {
+    function updateAll() {
         const monthly = parseFloat(document.getElementById('monthly').value) || 0;
         const ltd = parseFloat(document.getElementById('ltd').value) || 0;
-        const roiText = document.getElementById('roi-text');
+        const roi = monthly > 0 ? (ltd / monthly).toFixed(1) : 0;
         
-        const monthsToROI = monthly > 0 ? (ltd / monthly).toFixed(1) : 0;
-        roiText.innerText = monthsToROI + " мес.";
+        // Update ROI Text
+        document.getElementById('roi-text').innerText = roi + " мес.";
 
+        // Adaptive Colors (Gold Mode)
+        if (roi > 0 && roi < 6) {
+            document.body.classList.add('gold-mode');
+            document.getElementById('title').innerText = "🔥 Выгодная сделка!";
+        } else {
+            document.body.classList.remove('gold-mode');
+            document.getElementById('title').innerText = "ROI Анализ LTD";
+        }
+
+        // Update Savings
+        const calcSavings = (years) => {
+            const totalSaaS = monthly * 12 * years;
+            const savings = totalSaaS - ltd;
+            return (savings > 0 ? "+" : "") + "$" + Math.round(savings).toLocaleString();
+        };
+        document.getElementById('save-1y').innerText = calcSavings(1);
+        document.getElementById('save-3y').innerText = calcSavings(3);
+        document.getElementById('save-5y').innerText = calcSavings(5);
+
+        // Simple Graph Update
         const maxMonths = 24;
         const maxCost = Math.max(ltd * 1.5, monthly * maxMonths, 100);
-        
-        let saasD = "M 20,180";
-        let ltdD = `M 20,${180 - (ltd / maxCost * 160)}`;
+        let saasD = `M 0,${200 - (0 * monthly / maxCost * 180)}`;
+        let ltdY = 200 - (ltd / maxCost * 180);
+        let ltdD = `M 0,${ltdY}`;
 
-        for (let m = 1; m <= maxMonths; m++) {
-            let x = 20 + (m * (360 / maxMonths));
-            
-            // SaaS Line
-            let ySaas = 180 - ((m * monthly) / maxCost * 160);
-            saasD += ` L ${x},${ySaas}`;
-
-            // LTD Line (Horizontal)
-            let yLtd = 180 - (ltd / maxCost * 160);
-            ltdD += ` L ${x},${yLtd}`;
+        for (let m = 0; m <= maxMonths; m++) {
+            let x = (m / maxMonths) * 400;
+            saasD += ` L ${x},${200 - (m * monthly / maxCost * 180)}`;
+            ltdD += ` L ${x},${ltdY}`;
         }
-
         document.getElementById('saas-path').setAttribute('d', saasD);
         document.getElementById('ltd-path').setAttribute('d', ltdD);
-
+        
         const point = document.getElementById('point');
-        if (monthsToROI > 0 && monthsToROI <= maxMonths) {
-            let intersectX = 20 + (monthsToROI * (360 / maxMonths));
-            let intersectY = 180 - (ltd / maxCost * 160);
-            point.setAttribute('cx', intersectX);
-            point.setAttribute('cy', intersectY);
+        if (roi > 0 && roi <= maxMonths) {
+            point.setAttribute('cx', (roi / maxMonths) * 400);
+            point.setAttribute('cy', ltdY);
             point.style.display = 'block';
-        } else {
-            point.style.display = 'none';
-        }
+        } else { point.style.display = 'none'; }
     }
-    updateChart();
+
+    function copyForTelegram() {
+        const roi = document.getElementById('roi-text').innerText;
+        const s5y = document.getElementById('save-5y').innerText;
+        const url = window.location.href;
+        const text = `🔥 Проверил сервис: окупаемость LTD всего ${roi}!\n\n💰 Чистая экономия за 5 лет: ${s5y}.\nДальше — бесплатно навсегда.\n\n📊 Посчитать свою выгоду тут: ${url}`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Текст готов! Можно вставлять в Telegram.");
+        });
+    }
+
+    updateAll();
 </script>
 
 </body>
