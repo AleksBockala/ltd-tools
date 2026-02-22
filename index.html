@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI LTD ROI Master - Gemini Pro 3.1 Edition</title>
+    <title>LTD ROI Calculator - GridMind AI</title>
     <style>
         :root {
             --bg: #0a0b10;
@@ -16,12 +16,7 @@
             --gold: #ffd700;
         }
 
-        /* Gold Mode (Адаптивные цвета) */
-        .gold-mode {
-            --primary: var(--gold);
-            --success: var(--gold);
-            --accent: #ffa500;
-        }
+        .gold-mode { --primary: var(--gold); --success: var(--gold); }
 
         body {
             background: var(--bg);
@@ -29,82 +24,85 @@
             font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
             justify-content: center;
-            padding: 20px;
+            padding: 15px;
             margin: 0;
             transition: all 0.5s ease;
         }
 
         .calculator-card {
             background: var(--card);
-            padding: 2.5rem;
-            border-radius: 28px;
-            box-shadow: 0 15px 60px rgba(0,0,0,0.8);
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.7);
             width: 100%;
-            max-width: 480px;
+            max-width: 440px; /* Ограничение ширины для десктопа */
             border: 1px solid #2a2c3a;
-            position: relative;
+            box-sizing: border-box;
         }
 
-        .gold-mode .calculator-card {
-            border: 2px solid var(--gold);
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.25);
-        }
+        .gold-mode .calculator-card { border: 2px solid var(--gold); box-shadow: 0 0 40px rgba(255, 215, 0, 0.2); }
 
-        h2 { text-align: center; margin-top: 0; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: color 0.5s; }
+        h2 { text-align: center; margin-top: 0; color: var(--primary); font-size: 1.4rem; font-weight: 800; text-transform: uppercase; }
 
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 8px; font-size: 0.75rem; color: #888; font-weight: bold; }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 6px; font-size: 0.7rem; color: #888; font-weight: bold; }
         
         input {
             width: 100%;
             background: #0d0e14;
             border: 1px solid #333;
-            padding: 14px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             color: white;
-            font-size: 1.1rem;
+            font-size: 1rem;
             box-sizing: border-box;
             outline: none;
         }
-        input:focus { border-color: var(--primary); }
 
         .result-panel {
             background: rgba(0,0,0,0.4);
-            padding: 1.5rem;
-            border-radius: 20px;
+            padding: 1.2rem;
+            border-radius: 18px;
             border: 1px dashed #444;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-        .roi-value { font-size: 2.8rem; font-weight: 900; color: var(--success); transition: color 0.5s; }
+        .roi-value { font-size: 2.4rem; font-weight: 900; color: var(--success); }
 
-        /* Таблица экономии */
-        .savings-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-bottom: 20px; }
-        .savings-row { background: rgba(255,255,255,0.03); border-radius: 12px; }
-        .savings-row td { padding: 15px; font-size: 0.95rem; }
+        .savings-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-bottom: 15px; }
+        .savings-row { background: rgba(255,255,255,0.03); border-radius: 10px; }
+        .savings-row td { padding: 12px; font-size: 0.9rem; }
         .savings-row td:last-child { text-align: right; font-weight: bold; color: var(--success); }
 
-        /* Кнопка Telegram */
         .share-btn {
             width: 100%;
-            background: #24A1DE;
+            background: #2a2c3a;
             color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 14px;
+            border: 1px solid #444;
+            padding: 14px;
+            border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            font-size: 1rem;
+            gap: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
         }
-        .share-btn:hover { filter: brightness(1.1); }
+        .share-btn:hover { background: #3a3c4a; border-color: var(--primary); }
 
-        #graph-container { height: 160px; width: 100%; margin: 20px 0; border-bottom: 1px solid #222; }
+        #graph-container { height: 140px; width: 100%; margin: 15px 0; }
         .chart-line-saas { stroke: var(--danger); stroke-width: 4; fill: none; }
         .chart-line-ltd { stroke: var(--success); stroke-width: 4; fill: none; }
+
+        /* Адаптивность для мобильных */
+        @media (max-width: 400px) {
+            .calculator-card { padding: 1.2rem; }
+            .roi-value { font-size: 2rem; }
+            h2 { font-size: 1.2rem; }
+            .savings-row td { padding: 10px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body id="bodyTag">
@@ -124,7 +122,7 @@
     </div>
 
     <div class="result-panel">
-        <div style="font-size: 0.8rem; color: #888; letter-spacing: 1px;">ТОЧКА ОКУПАЕМОСТИ:</div>
+        <div style="font-size: 0.75rem; color: #888; letter-spacing: 1px;">ОКУПАЕМОСТЬ:</div>
         <div class="roi-value" id="roi-text">4.0 мес.</div>
     </div>
 
@@ -142,8 +140,8 @@
         <tr class="savings-row"><td>Через 5 лет:</td><td id="save-5y">+$0</td></tr>
     </table>
 
-    <button class="share-btn" onclick="copyForTelegram()">
-        <span>✈️</span> Копировать для Telegram
+    <button class="share-btn" onclick="copyResult()">
+        <span>📋</span> Копировать результат
     </button>
 </div>
 
@@ -155,7 +153,6 @@
         
         document.getElementById('roi-text').innerText = roi + " мес.";
 
-        // Gold Mode
         if (roi > 0 && roi < 6) {
             document.body.classList.add('gold-mode');
             document.getElementById('title').innerText = "🔥 Выгодная сделка!";
@@ -164,7 +161,6 @@
             document.getElementById('title').innerText = "ROI Анализ LTD";
         }
 
-        // Экономия
         const calcSavings = (years) => {
             const savings = (monthly * 12 * years) - ltd;
             return (savings > 0 ? "+" : "") + "$" + Math.round(savings).toLocaleString();
@@ -173,7 +169,6 @@
         document.getElementById('save-3y').innerText = calcSavings(3);
         document.getElementById('save-5y').innerText = calcSavings(5);
 
-        // График
         const maxMonths = 24;
         const maxCost = Math.max(ltd * 1.5, monthly * maxMonths, 100);
         let saasD = `M 0,200`;
@@ -196,14 +191,15 @@
         } else { point.style.display = 'none'; }
     }
 
-    function copyForTelegram() {
+    function copyResult() {
         const roi = document.getElementById('roi-text').innerText;
         const s5y = document.getElementById('save-5y').innerText;
-        const url = window.location.href;
-        const text = `🔥 Окупаемость LTD сервиса всего ${roi}!\n\n💰 Чистая экономия за 5 лет: ${s5y}.\n📊 Посчитать свою выгоду: ${url}`;
+        // Используем прямую ссылку на ваш сайт вместо GitHub
+        const siteUrl = "https://gridmindai.edustyle.me/pages/ltd-calculator";
+        const text = `📊 Мой ROI-анализ LTD:\n\n✅ Окупаемость: ${roi}\n💰 Экономия за 5 лет: ${s5y}\n\nПосчитайте свою выгоду здесь: ${siteUrl}`;
         
         navigator.clipboard.writeText(text).then(() => {
-            alert("Текст скопирован! Теперь вставьте его в Telegram.");
+            alert("Результат скопирован в буфер обмена!");
         });
     }
     updateAll();
