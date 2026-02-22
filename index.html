@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTD ROI Calculator</title>
+    <title>AI LTD ROI Calculator by Gemini Pro 3</title>
     <style>
         :root {
             --bg: #0a0b10;
@@ -18,11 +18,10 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            padding: 20px;
             margin: 0;
         }
 
@@ -30,82 +29,95 @@
             background: var(--card);
             padding: 2rem;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
             border: 1px solid #2a2c3a;
         }
 
-        h2 { text-align: center; margin-top: 0; color: var(--primary); }
+        h2 { text-align: center; margin-top: 0; color: var(--primary); letter-spacing: 1px; }
 
-        .input-group { margin-bottom: 1.5rem; }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1.5rem; }
         
-        label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #888; }
+        label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: #888; text-transform: uppercase; }
         
         input {
             width: 100%;
-            background: #0a0b10;
+            background: #0d0e14;
             border: 1px solid #333;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             color: white;
-            font-size: 1rem;
+            font-size: 1.1rem;
             box-sizing: border-box;
-            outline: none;
+            transition: border-color 0.3s;
         }
 
-        input:focus { border-color: var(--primary); }
+        input:focus { border-color: var(--primary); outline: none; }
 
         .result-panel {
-            background: #0a0b10;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-top: 1rem;
+            background: linear-gradient(135deg, #1a1c29 0%, #0d0e14 100%);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid #2a2c3a;
             text-align: center;
         }
 
-        .roi-value { font-size: 1.5rem; font-weight: bold; color: var(--success); }
+        .roi-label { font-size: 0.9rem; color: #888; margin-bottom: 5px; }
+        .roi-value { font-size: 2rem; font-weight: 800; color: var(--success); text-shadow: 0 0 15px rgba(0,255,136,0.3); }
 
         #graph-container {
             margin-top: 2rem;
-            height: 200px;
+            height: 180px;
             width: 100%;
+            position: relative;
         }
 
-        .chart-line-saas { stroke: var(--danger); stroke-width: 3; fill: none; }
-        .chart-line-ltd { stroke: var(--success); stroke-width: 3; fill: none; }
+        .axis { stroke: #333; stroke-width: 1; }
+        .chart-line-saas { stroke: var(--danger); stroke-width: 4; fill: none; stroke-linecap: round; }
+        .chart-line-ltd { stroke: var(--success); stroke-width: 4; fill: none; stroke-linecap: round; }
+        
+        .legend { display: flex; justify-content: space-around; margin-top: 15px; font-size: 0.8rem; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
     </style>
 </head>
 <body>
 
 <div class="calculator-card">
-    <h2>LTD Калькулятор</h2>
+    <h2>ROI Анализ LTD</h2>
     
-    <div class="input-group">
-        <label>Стоимость подписки в месяц ($)</label>
-        <input type="number" id="monthly" value="20" oninput="updateChart()">
-    </div>
-
-    <div class="input-group">
-        <label>Стоимость LTD лицензии ($)</label>
-        <input type="number" id="ltd" value="199" oninput="updateChart()">
+    <div class="input-row">
+        <div class="input-group">
+            <label>SaaS ($/мес)</label>
+            <input type="number" id="monthly" value="29" oninput="updateChart()">
+        </div>
+        <div class="input-group">
+            <label>LTD Цена ($)</label>
+            <input type="number" id="ltd" value="149" oninput="updateChart()">
+        </div>
     </div>
 
     <div class="result-panel">
-        <div>Окупаемость через:</div>
-        <div class="roi-value" id="roi-text">10 месяцев</div>
+        <div class="roi-label">Точка окупаемости:</div>
+        <div class="roi-value" id="roi-text">5.1 мес.</div>
     </div>
 
     <div id="graph-container">
         <svg id="chart" width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
-            <line x1="0" y1="180" x2="400" y2="180" stroke="#333" />
-            <line x1="20" y1="0" x2="20" y2="200" stroke="#333" />
+            <line x1="20" y1="20" x2="20" y2="180" class="axis" />
+            <line x1="20" y1="180" x2="380" y2="180" class="axis" />
             
             <path id="saas-path" class="chart-line-saas" d="" />
             <path id="ltd-path" class="chart-line-ltd" d="" />
             
-            <circle id="point" cx="0" cy="0" r="5" fill="white" style="display:none" />
+            <circle id="point" cx="0" cy="0" r="6" fill="#fff" filter="drop-shadow(0 0 5px rgba(255,255,255,0.8))" style="display:none" />
         </svg>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:var(--danger)"></div> SaaS Траты</div>
+        <div class="legend-item"><div class="dot" style="background:var(--success)"></div> LTD Инвестиция</div>
     </div>
 </div>
 
@@ -115,37 +127,34 @@
         const ltd = parseFloat(document.getElementById('ltd').value) || 0;
         const roiText = document.getElementById('roi-text');
         
-        // ROI Calculation
         const monthsToROI = monthly > 0 ? (ltd / monthly).toFixed(1) : 0;
         roiText.innerText = monthsToROI + " мес.";
 
-        // Graph Logic
         const maxMonths = 24;
-        const maxCost = Math.max(ltd * 1.5, monthly * maxMonths);
+        const maxCost = Math.max(ltd * 1.5, monthly * maxMonths, 100);
         
-        const saasPoints = [];
-        const ltdPoints = [];
+        let saasD = "M 20,180";
+        let ltdD = `M 20,${180 - (ltd / maxCost * 160)}`;
 
-        for (let m = 0; m <= maxMonths; m++) {
-            let x = 20 + (m * (380 / maxMonths));
+        for (let m = 1; m <= maxMonths; m++) {
+            let x = 20 + (m * (360 / maxMonths));
             
             // SaaS Line
-            let ySaas = 180 - ((m * monthly) / maxCost * 170);
-            saasPoints.push(`${x},${ySaas}`);
+            let ySaas = 180 - ((m * monthly) / maxCost * 160);
+            saasD += ` L ${x},${ySaas}`;
 
-            // LTD Line
-            let yLtd = 180 - (ltd / maxCost * 170);
-            ltdPoints.push(`${x},${yLtd}`);
+            // LTD Line (Horizontal)
+            let yLtd = 180 - (ltd / maxCost * 160);
+            ltdD += ` L ${x},${yLtd}`;
         }
 
-        document.getElementById('saas-path').setAttribute('d', 'M' + saasPoints.join(' L'));
-        document.getElementById('ltd-path').setAttribute('d', 'M' + ltdPoints.join(' L'));
+        document.getElementById('saas-path').setAttribute('d', saasD);
+        document.getElementById('ltd-path').setAttribute('d', ltdD);
 
-        // Point of Intersection
         const point = document.getElementById('point');
         if (monthsToROI > 0 && monthsToROI <= maxMonths) {
-            let intersectX = 20 + (monthsToROI * (380 / maxMonths));
-            let intersectY = 180 - (ltd / maxCost * 170);
+            let intersectX = 20 + (monthsToROI * (360 / maxMonths));
+            let intersectY = 180 - (ltd / maxCost * 160);
             point.setAttribute('cx', intersectX);
             point.setAttribute('cy', intersectY);
             point.style.display = 'block';
@@ -153,8 +162,6 @@
             point.style.display = 'none';
         }
     }
-
-    // Initial run
     updateChart();
 </script>
 
